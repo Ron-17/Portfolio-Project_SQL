@@ -1,11 +1,4 @@
 
----Inspecting Data
-select * from [dbo].[sales_data_sample]
-
-
-select distinct MONTH_ID from [dbo].[sales_data_sample]
-where year_id = 2003
-
 
 
 
@@ -37,7 +30,7 @@ DROP TABLE IF EXISTS #rfm
 		avg(sales) AvgMonetaryValue,
 		count(ORDERNUMBER) Frequency,
 		max(ORDERDATE) last_order_date,
-		DATEDIFF(DD, max(ORDERDATE), (select max(ORDERDATE) from [dbo].[sales_data_sample])) Recency
+		DATEDIFF(DD, max(ORDERDATE), (select max(ORDERDATE) from [Portfolio].[dbo].[sales_data_sample])) Recency
 	from [Portfolio].[dbo].[sales_data_sample]
 	group by CUSTOMERNAME
 ),
@@ -69,25 +62,17 @@ select CUSTOMERNAME , rfm_recency, rfm_frequency, rfm_monetary,
 from #rfm
 
 
+SELECT * FROM [Portfolio].[dbo].[sales_data_sample];
+----Correlation Between Products
 
---What products are most often sold together? 
---select * from [dbo].[sales_data_sample] where ORDERNUMBER =  10411
-
-
-
----EXTRAs----
---What city has the highest number of sales in a specific country
-select city, sum (sales) Revenue
-from [Portfolio].[dbo].[sales_data_sample]
-where country = 'UK'
-group by city
-order by 2 desc
+with a as(
+Select d1.PRODUCTLINE as first_product,d2.PRODUCTLINE as second_product from [Portfolio].[dbo].[sales_data_sample] d1 inner join [Portfolio].[dbo].[sales_data_sample] d2
+on d1.ORDERNUMBER<d2.ORDERNUMBER and d1.PRODUCTLINE<> d2.PRODUCTLINE and d1.CUSTOMERNAME=d2.CUSTOMERNAME  where DATEDIFF(SECOND,d1.ORDERDATE,D2.ORDERDATE)<10)
+Select a.first_product as first_product,a.second_product  as second_product,count(*) as Correlation_Count from a group by a.first_product,a.second_product Order by Count(*) desc;
 
 
 
----What is the best product in United States?
-select country, YEAR_ID, PRODUCTLINE, sum(sales) Revenue
-from [Portfolio].[dbo].[sales_data_sample]
-where country = 'USA'
-group by  country, YEAR_ID, PRODUCTLINE
-order by 4 desc
+
+
+
+
