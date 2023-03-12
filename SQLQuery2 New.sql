@@ -66,10 +66,14 @@ SELECT * FROM [Portfolio].[dbo].[sales_data_sample];
 ----Correlation Between Products
 
 with a as(
-Select d1.PRODUCTLINE as first_product,d2.PRODUCTLINE as second_product from [Portfolio].[dbo].[sales_data_sample] d1 inner join [Portfolio].[dbo].[sales_data_sample] d2
-on d1.ORDERNUMBER<d2.ORDERNUMBER and d1.PRODUCTLINE<> d2.PRODUCTLINE and d1.CUSTOMERNAME=d2.CUSTOMERNAME  where DATEDIFF(SECOND,d1.ORDERDATE,D2.ORDERDATE)<10)
-Select a.first_product as first_product,a.second_product  as second_product,count(*) as Correlation_Count from a group by a.first_product,a.second_product Order by Count(*) desc;
+Select d1.CUSTOMERNAME as CUSTOMERNAME,d1.PRODUCTLINE as first_product,d2.PRODUCTLINE as second_product from [Portfolio].[dbo].[sales_data_sample] d1 inner join [Portfolio].[dbo].[sales_data_sample] d2
+on d1.ORDERNUMBER<d2.ORDERNUMBER and d1.PRODUCTLINE<> d2.PRODUCTLINE and d1.CUSTOMERNAME=d2.CUSTOMERNAME  where DATEDIFF(SECOND,d1.ORDERDATE,D2.ORDERDATE)<10),
+b as(Select a.CUSTOMERNAME,a.first_product as first_product,a.second_product  as second_product,count(*) as Correlation_Count from a group by a.first_product,a.second_product,a.CUSTOMERNAME)
 
+
+
+
+SELECT *,rank()over(partition by b.CUSTOMERNAME order by b.Correlation_Count desc) as rnk from b;
 
 
 
